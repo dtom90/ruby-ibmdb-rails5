@@ -280,7 +280,7 @@ module ActiveRecord
 
   module ConnectionAdapters
     module SchemaStatements
-      def create_table_definition(name, temporary, options,as = nil)
+      def create_table_definition(name, temporary, options, as = nil, comment = nil)
         TableDefinition.new self, name, temporary, options
       end
 	  
@@ -513,9 +513,9 @@ module ActiveRecord
       def column(name, type, options ={})
         # construct a column definition where @base is adaptor instance
         if(@ar3)
-          column = ColumnDefinition.new(@base, name, type)
+          column = ColumnDefinition.new(@base, name, type, options)
         else
-          column = ColumnDefinition.new(name, type)
+          column = ColumnDefinition.new(name, type, options)
         end
         # DB2 does not accept DEFAULT NULL option for XML
         # for table create, but does accept nullable option
@@ -1640,7 +1640,7 @@ module ActiveRecord
 
       # IBM data servers do not support limits on certain data types (unlike MySQL)
       # Limit is supported for the {float, decimal, numeric, varchar, clob, blob, graphic, vargraphic} data types.
-      def type_to_sql(type, limit = nil, precision = nil, scale = nil)
+      def type_to_sql(type, limit: nil, precision: nil, scale: nil, **)
         if type.to_sym == :decfloat
           sql_segment = native_database_types[type.to_sym][:name].to_s
           sql_segment << "(#{precision})" if !precision.nil?
