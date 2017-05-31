@@ -444,7 +444,7 @@ module ActiveRecord
         end
         @columns = []
         @columns_hash = {}
-        @indexes = {}
+        @indexes = []
         @base = base
         @temporary = temporary
         @options = options
