@@ -312,6 +312,39 @@ module ActiveRecord
       def drop_table(table_name, options = {})
         execute "DROP TABLE #{table_name};" if options[:if_exists] && table_exists?(table_name)
       end
+
+      def data_source_sql(name = nil, type: nil)
+        scope = quoted_scope(name, type: type)
+
+        sql = "SELECT tabname FROM syscat.tables"
+        nxt = scope[:schema] ? " tabschema = #{scope[:schema]} AND" : " WHERE"
+        sql << nxt
+        sql << " tabname = #{scope[:name]}" if scope[:name]
+        sql << " AND type = #{scope[:type]}" if scope[:type]
+        sql
+      end
+
+      def quoted_scope(name = nil, type: nil)
+        schema, name = extract_schema_qualified_name(name)
+        type = \
+          case type
+           when "BASE TABLE"
+             "T"
+           when "VIEW"
+             "V"
+          end
+        scope = {}
+        scope[:schema] = quote(schema) if schema
+        scope[:name] = quote(name) if name
+        scope[:type] = quote(type) if type
+        scope
+      end
+
+      def extract_schema_qualified_name(string)
+        schema, name = string.to_s.scan(/[^`.\s]+|`[^`]*`/)
+        schema, name = nil, schema unless name
+        [schema, name]
+      end
     end
 	
     class IBM_DBColumn < Column
