@@ -284,7 +284,7 @@ module ActiveRecord
         TableDefinition.new self, name, temporary, options
       end
 	  
-	  def remove_foreign_key(from_table, options_or_to_table = {})    
+	    def remove_foreign_key(from_table, options_or_to_table = {})    
         return unless supports_foreign_keys?
 
         if options_or_to_table.is_a?(Hash)		  
@@ -307,6 +307,10 @@ module ActiveRecord
         at.drop_foreign_key fk_name_to_delete
 
         execute schema_creation.accept(at)
+      end
+
+      def drop_table(table_name, options = {})
+        execute "DROP TABLE #{table_name};" if options[:if_exists] && table_exists?(table_name)
       end
     end
 	
