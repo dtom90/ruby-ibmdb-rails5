@@ -335,7 +335,7 @@ module ActiveRecord
           end
         scope = {}
         scope[:schema] = quote(schema) if schema
-        scope[:name] = quote(name) if name
+        scope[:name] = quote(@servertype.set_case name) if name
         scope[:type] = quote(type) if type
         scope
       end
