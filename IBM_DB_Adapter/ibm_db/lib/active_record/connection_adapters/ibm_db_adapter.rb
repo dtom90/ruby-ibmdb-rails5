@@ -364,7 +364,11 @@ module ActiveRecord
         value.to_s.gsub(/"SYSIBM"."BLOB"\('(.*)'\)/i,'\1')				
       end
 
-       private
+      def sql_type
+        self.null
+      end
+      
+      private
       # Mapping IBM data servers SQL datatypes to Ruby data types
       def simplified_type(field_type)
         case field_type
@@ -1014,7 +1018,7 @@ module ActiveRecord
 
       def select(sql, name = nil, binds = [])
         # Replaces {"= NULL" with " IS NULL"} OR {"IN (NULL)" with " IS NULL"}
-        sql.gsub!( /(=\s*NULL|IN\s*\(NULL\))/i, " IS NULL" )
+        sql.dup.gsub!( /(=\s*NULL|IN\s*\(NULL\))/i, " IS NULL" )
 
         results = []
 
