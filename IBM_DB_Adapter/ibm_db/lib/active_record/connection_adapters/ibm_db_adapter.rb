@@ -14,50 +14,6 @@ require 'arel/visitors/bind_visitor'
 require 'active_support/core_ext/string/strip'
 
 module ActiveRecord
-  class Relation
-    def insert(values)
-      primary_key_value = nil
-
-      if primary_key && Hash === values
-        primary_key_value = values[values.keys.find { |k|
-          k.name == primary_key
-        }]
-
-        if !primary_key_value && connection.prefetch_primary_key?(klass.table_name)
-          primary_key_value = connection.next_sequence_value(klass.sequence_name)
-          values[klass.arel_table[klass.primary_key]] = primary_key_value
-        end
-      end
-
-      im = arel.create_insert
-      im.into @table
-
-      conn = @klass.connection
-
-      substitutes = values.sort_by { |arel_attr,_| arel_attr.name }
-      binds       = substitutes.map do |arel_attr, value|
-        [@klass.columns_hash[arel_attr.name], value]
-      end
-
-      substitutes.each_with_index do |tuple, i|
-        tuple[1] = conn.substitute_at(binds[i][0], i)
-      end
-
-      if values.empty? # empty insert
-        im.values = Arel.sql(connection.empty_insert_statement_value(klass.primary_key))
-      else
-        im.insert substitutes
-      end
-
-      conn.insert(
-        im,
-        'SQL',
-        primary_key,
-        primary_key_value,
-        nil,
-        binds)
-    end
-  end
 
   class Base
     # Method required to handle LOBs and XML fields. 
@@ -1466,11 +1422,7 @@ module ActiveRecord
       # Quote date/time values for use in SQL input.
       # Includes microseconds, if the value is a Time responding to usec.
       def quoted_date(value) #:nodoc:
-        if value.respond_to?(:usec)
-          "#{super}.#{sprintf("%06d", value.usec)}"
-        else
-          super
-        end
+        super
       end
 
       def quote_value_for_pstmt(value, column=nil)
@@ -1584,6 +1536,10 @@ module ActiveRecord
 
       def quote_column_name(name)
          @servertype.check_reserved_words(name)
+      end
+
+      def substitute_at(column, _unused = 0)
+        Arel::Nodes::BindParam.new
       end
 
       #==============================================
