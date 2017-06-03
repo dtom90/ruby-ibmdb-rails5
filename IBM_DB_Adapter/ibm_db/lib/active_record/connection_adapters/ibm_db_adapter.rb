@@ -1221,8 +1221,8 @@ module ActiveRecord
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [])
         begin
-          param_array = binds.map do |column,value|
-            quote_value_for_pstmt(value, column)
+          param_array = binds.map do |column|
+            quote_value_for_pstmt(column.value, column)
           end
 
           stmt = prepare(sql, name)
@@ -3134,7 +3134,7 @@ else
         if o.limit
           limcoll = Arel::Collectors::SQLString.new
           visit(o.limit,limcoll)
-          limit = limcoll.value.to_i
+          limit = limcoll.value
         else
           limit = nil
         end
@@ -3142,7 +3142,7 @@ else
         if o.offset
           offcoll = Arel::Collectors::SQLString.new
           visit(o.offset,offcoll)
-          offset = offcoll.value.to_i
+          offset = offcoll.value
         else
           offset = nil
         end
