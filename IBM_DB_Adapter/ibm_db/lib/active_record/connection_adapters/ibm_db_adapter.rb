@@ -1221,8 +1221,9 @@ module ActiveRecord
       # the executed +sql+ statement.
       def exec_query(sql, name = 'SQL', binds = [])
         begin
-          param_array = binds.map do |column|
-            quote_value_for_pstmt(column.value, column)
+          param_array = []
+          binds.each do |column|
+            param_array << quote_value_for_pstmt(column.value, column) unless column.class.parent == ActiveRecord::Relation
           end
 
           stmt = prepare(sql, name)
@@ -1432,8 +1433,8 @@ module ActiveRecord
         case value
           when String, ActiveSupport::Multibyte::Chars then
             value = value.to_s
-			if column && column.sql_type.to_s =~ /int|serial|float/i
-              value = column.sql_type.to_s =~ /int|serial/i ? value.to_i : value.to_f
+            if column && column.type.to_s =~ /Integer|Float/i #serial
+              value = column.sql_type.to_s =~ /Integer/i ? value.to_i : value.to_f
               value
             else
               value
