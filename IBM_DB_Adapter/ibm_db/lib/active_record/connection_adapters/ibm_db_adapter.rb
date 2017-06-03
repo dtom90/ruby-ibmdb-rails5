@@ -266,7 +266,7 @@ module ActiveRecord
       end
 
       def drop_table(table_name, options = {})
-        execute "DROP TABLE #{table_name};" if options[:if_exists] && table_exists?(table_name)
+        execute "DROP TABLE #{table_name}" if options[:if_exists] && table_exists?(table_name)
       end
 
       def data_source_sql(name = nil, type: nil)
@@ -2479,10 +2479,9 @@ SET WITH DEFAULT #{@adapter.quote(default)}"
         end
 
         # Defines what will be the last record
-        last_record = offset.to_i + limit.to_i
         #retHash["startSegment"] = "SELECT O.* FROM (SELECT I.*, ROW_NUMBER() OVER () sys_row_num FROM ( SELECT "
         retHash["startSegment"] = "SELECT O.* FROM (SELECT I.*, ROW_NUMBER() OVER () sys_row_num FROM (  "
-        retHash["endSegment"] = " ) AS I) AS O WHERE sys_row_num BETWEEN #{offset+1} AND #{last_record}"
+        retHash["endSegment"] = " ) AS I) AS O WHERE sys_row_num BETWEEN #{offset} AND #{limit}"
         return retHash
       end
 
@@ -3168,7 +3167,10 @@ else
 
 	return collector
       end
-end	  
+end
+      def visit_Arel_Nodes_TableAlias o, collector
+        collector = visit o.relation, collector
+      end
 	
     end
   end
